@@ -62,6 +62,47 @@
 
 # Вы можете расположить сценарий своей игры в этом файле.
 
+screen arrows(left_bg=None, left_ph='', right_bg=None, right_ph=''):
+
+    $ tip = GetTooltip()
+
+    if left_bg:
+        vbox:
+            xalign 0.0
+            yalign 0.5
+            ysize 150
+
+            imagebutton:
+                idle "arrow_left"
+                tooltip left_ph
+                action [Hide("arrows"), Jump(left_bg)]
+            
+            if(tip == left_ph):
+                text "[left_ph]":
+                    xalign 0.5
+                    yalign 0.9
+                    size 25
+                    color "#ffffff"
+
+    if right_bg:
+        vbox:
+            xalign 1.0
+            yalign 0.5
+            ysize 150
+
+            imagebutton:
+                idle "arrow_right"
+                tooltip right_ph
+                action [Hide("arrows"), Jump(right_bg)]
+            
+
+            if(tip == right_ph):
+                text "[right_ph]":
+                    xalign 0.5
+                    yalign 0.9
+                    size 25
+                    color "#ffffff"
+
 define config.mouse = { }
 define config.mouse['default'] = [ ( "gui/hand.png", 15, 15) ]
 define config.mouse['button'] = [ ( "gui/finger.png", 15, 15) ]
@@ -100,5 +141,37 @@ label start:
     hide sister
 
     jump room
+
+    return
+
+label room:
+    show bg room
+
+    call screen arrows('bathroom', 'Ванная комната', 'hallway', 'Коридор')
+
+    return
+
+label bathroom:
+    show bg bathroom
+
+    call screen arrows(right_bg='room',  right_ph='Комната')
+    
+    return
+
+label hallway:
+    show bg hallway
+
+    call screen arrows('kitchen', 'Кухня', 'room', 'Комната')
+
+    return
+
+label kitchen:
+    show bg kitchen
+
+    call screen arrows('hallway', 'Коридор', 'exit', 'Выход')
+
+    return
+
+label exit:
 
     return
