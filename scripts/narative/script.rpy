@@ -62,9 +62,25 @@
 
 # Вы можете расположить сценарий своей игры в этом файле.
 
+
+define is_say_painting = False
+
+default dialogue_active = False
+
+default open_images = []
+
+init python:
+    def dialogue_callback(event, interact=True, **kwargs):
+        if event == "begin":
+            store.dialogue_active = True
+        elif event == "end":
+            store.dialogue_active = False
+
 screen arrows(left_bg=None, left_ph='', right_bg=None, right_ph=''):
 
-    $ tip = GetTooltip()
+    $ tip = GetTooltip();
+
+    $ action_array = list(map(lambda i: Hide(i), open_images))
 
     if left_bg:
         vbox:
@@ -75,7 +91,9 @@ screen arrows(left_bg=None, left_ph='', right_bg=None, right_ph=''):
             imagebutton:
                 idle "arrow_left"
                 tooltip left_ph
-                action [Hide("arrows"), Jump(left_bg)]
+                action [
+                    *action_array,
+                    Jump(left_bg)]
             
             if(tip == left_ph):
                 text "[left_ph]":
@@ -93,7 +111,9 @@ screen arrows(left_bg=None, left_ph='', right_bg=None, right_ph=''):
             imagebutton:
                 idle "arrow_right"
                 tooltip right_ph
-                action [Hide("arrows"), Jump(right_bg)]
+                action [
+                    *action_array,
+                    Jump(right_bg)]
             
 
             if(tip == right_ph):
@@ -103,75 +123,18 @@ screen arrows(left_bg=None, left_ph='', right_bg=None, right_ph=''):
                     size 25
                     color "#ffffff"
 
-define config.mouse = { }
-define config.mouse['default'] = [ ( "gui/hand.png", 15, 15) ]
-define config.mouse['button'] = [ ( "gui/finger.png", 15, 15) ]
-
-transform left_center:
-    xalign 0.0
-    yalign 0.5
-
-transform right_center:
-    xalign 1.0
-    yalign 0.5
+define config.mouse_displayable = MouseDisplayable(
+    "gui/hand.png", 50, 50).add("button", "gui/finger.png", 50, 50)
 
 # Определение персонажей игры.
-define m = Character('Мама', color="#c8ffc8", image="mom")
-define s = Character('Старшая сестра', color="#c8ffc8", image="sister")
+define m = Character('Мама', color="#c8ffc8", image="mom", callback=dialogue_callback)
+define s = Character('Старшая сестра', color="#c8ffc8", image="sister", callback=dialogue_callback)
+define u = Character('', callback=dialogue_callback)
 
 # Игра начинается здесь:
 label start:
 
-    scene bg room
-
-    show mom normal at right
-
-    m "Вы создали новую игру Ren'Py."
-
-    show mom normal at left
-
-    m smiling "Добавьте сюжет, изображения и музыку и отправьте её в мир!Добавьте сюжет, изображения и музыку и отправьте её в мир!"
-
-    hide mom
-
-    show sister normal at center
-
-    s 'Тебя никто не любит'
-
-    hide sister
-
-    jump room
+    jump act1
 
     return
 
-label room:
-    show bg room
-
-    call screen arrows('bathroom', 'Ванная комната', 'hallway', 'Коридор')
-
-    return
-
-label bathroom:
-    show bg bathroom
-
-    call screen arrows(right_bg='room',  right_ph='Комната')
-    
-    return
-
-label hallway:
-    show bg hallway
-
-    call screen arrows('kitchen', 'Кухня', 'room', 'Комната')
-
-    return
-
-label kitchen:
-    show bg kitchen
-
-    call screen arrows('hallway', 'Коридор', 'exit', 'Выход')
-
-    return
-
-label exit:
-
-    return
