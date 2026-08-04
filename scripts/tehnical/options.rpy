@@ -40,6 +40,13 @@ define gui.about = _p("""
 define build.name = "dofamin"
 
 
+## Размеры окна
+
+init python hide:
+    config.screen_width = 900
+    config.screen_height = 900
+    config.gl_resize = False
+
 ## Звуки и музыка ##############################################################
 
 ## Эти три переменные управляют, среди прочего, тем, какие микшеры показываются
