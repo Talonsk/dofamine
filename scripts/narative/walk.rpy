@@ -11,8 +11,8 @@ init python:
             self.width = 0
             self.hight = 0
 
-            self.PLAYER_WIDTH = 110
-            self.PLAYER_HEIGHT = 170
+            self.PLAYER_WIDTH = 45
+            self.PLAYER_HEIGHT = 75
             self.SCENE_WIGHT = config.screen_width 
             self.SCENE_HIGHT = config.screen_height
 
@@ -101,7 +101,7 @@ screen you:
     add You(image='ui/sprites/walk_down1.png', x=100, y=100)
 
 screen park:
-    add 'ui/park1.jpg'
+    add 'ui/park1.png'
 
 
 label walk:
