@@ -1,10 +1,18 @@
 init python:
+
+    from enum import Enum
+
+    class CharacterState(Enum):
+        Down = ['ui/sprites/walk_down1.png', 'ui/sprites/walk_down2.png', 'ui/sprites/walk_down3.png']
+        Up = ['ui/sprites/walk_up1.png', 'ui/sprites/walk_up2.png', 'ui/sprites/walk_up3.png']
+        Left = ['ui/sprites/walk_left1.png', 'ui/sprites/walk_left2.png', 'ui/sprites/walk_left1.png']
+        Right = ['ui/sprites/walk_right1.png', 'ui/sprites/walk_right2.png', 'ui/sprites/walk_right1.png']
     
+
     class You(renpy.Displayable):
 
         def __init__(self, image, x, y, **kwargs):
             super(You, self).__init__(**kwargs)
-            self.image = image
             self.x = x
             self.y = y
 
@@ -13,10 +21,12 @@ init python:
 
             self.PLAYER_WIDTH = 45
             self.PLAYER_HEIGHT = 75
+            self.PLAYER_STATE = CharacterState.Right.value
             self.SCENE_WIGHT = config.screen_width 
             self.SCENE_HIGHT = config.screen_height
 
-            self.player_speed = 3
+            self.animation_speed = 5
+            self.player_speed = 1
             self.move_left = False
             self.move_right = False
             self.move_up = False
@@ -26,27 +36,36 @@ init python:
             self.px = 250
             self.py = 840
 
-        def render(self, width, height, st, at):
-            
-            # The Render object we'll be drawing into.
-            r = renpy.Render(width, height)
-            
-            player = renpy.displayable(self.image) 
-            
-            player_r = renpy.render(player, 900, 900, 0, 0)
-            
-            r.blit(player_r, (self.x, self.y))
-            
+        def render(self, width, height, st, at):                        
             # Determines the speed 
             if self.move_left:
                 self.x -= self.player_speed
+                self.PLAYER_STATE = CharacterState.Left.value
             elif self.move_right:
                 self.x += self.player_speed
+                self.PLAYER_STATE = CharacterState.Right.value
             
             if self.move_up:
                 self.y -= self.player_speed
+                self.PLAYER_STATE = CharacterState.Up.value
             elif self.move_down:
                 self.y += self.player_speed
+                self.PLAYER_STATE = CharacterState.Down.value
+            
+            # The Render object we'll be drawing into.
+            r = renpy.Render(width, height)
+
+            is_move = self.move_left or self.move_right or self.move_up or self.move_down
+
+            current_frame = int(st*self.animation_speed) % 3 if is_move else 0
+            
+            current_image = self.PLAYER_STATE[current_frame]
+            player = renpy.displayable(current_image)
+            
+            player_r = renpy.render(player, 900, 900, 0, 0)
+
+            
+            r.blit(player_r, (self.x, self.y))
 
             # Set the position of the player.
             self.x = min(max(self.x, 0), self.SCENE_WIGHT - self.PLAYER_WIDTH)
@@ -67,6 +86,7 @@ init python:
             
             # Keyboard controls
             if ev.type == pygame.KEYDOWN:
+
                 if ev.key == pygame.K_LEFT:
                     self.move_left = True
                     self.move_right = False
@@ -81,6 +101,7 @@ init python:
                     self.move_up = False
                     self.move_down = True
             elif ev.type == pygame.KEYUP:
+
                 if ev.key == pygame.K_LEFT:
                     self.move_left = False
                 elif ev.key == pygame.K_RIGHT:
