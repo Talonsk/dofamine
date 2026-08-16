@@ -54,16 +54,6 @@ screen hole:
         sensitive not dialogue_active
         action Jump('hole')
 
-screen hole:
-    $ open_images.append('hole');
-
-    imagebutton:
-        idle "hole"
-        xpos 207
-        ypos 453
-        sensitive not dialogue_active
-        action Jump('hole')
-
 
 label act1:
 

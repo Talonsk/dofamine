@@ -11,18 +11,18 @@ init python:
 
     class You(renpy.Displayable):
 
-        def __init__(self, image, x, y, **kwargs):
+        def __init__(self, state, x, y, **kwargs):
             super(You, self).__init__(**kwargs)
             self.x = x
             self.y = y
 
-            self.width = 0
-            self.hight = 0
+            self.width = 43
+            self.hight = 76
 
             self.PLAYER_WIDTH = 45
             self.PLAYER_HEIGHT = 75
-            self.PLAYER_STATE = CharacterState.Right.value
-            self.SCENE_WIGHT = config.screen_width 
+            self.PLAYER_STATE = CharacterState[state].value
+            self.SCENE_WIGHT = config.screen_width
             self.SCENE_HIGHT = config.screen_height
 
             self.animation_speed = 5
@@ -31,10 +31,6 @@ init python:
             self.move_right = False
             self.move_up = False
             self.move_down = False
-            
-            # Position of player
-            self.px = 250
-            self.py = 840
 
         def render(self, width, height, st, at):                        
             # Determines the speed 
@@ -62,7 +58,7 @@ init python:
             current_image = self.PLAYER_STATE[current_frame]
             player = renpy.displayable(current_image)
             
-            player_r = renpy.render(player, 900, 900, 0, 0)
+            player_r = renpy.render(player, self.width, self.hight, 0, 0)
 
             
             r.blit(player_r, (self.x, self.y))
@@ -119,17 +115,81 @@ init python:
 screen you:
     zorder 10
 
-    add You(image='ui/sprites/walk_down1.png', x=100, y=100)
+    add You(state='Right', x=10, y=350)
+
+screen swing:
+    zorder 20
+
+    imagebutton:
+        idle 'swing'
+        hover "swing_hover"
+        xpos 483
+        ypos 447
+        action Jump("swing")
+
+screen syringe:
+    imagebutton:
+        idle 'syringe'
+        hover "syringe_hover"
+        xpos 143
+        ypos 96
+        action Jump("syringe")
+
+screen bench1:
+    zorder 20
+
+    imagebutton:
+        idle 'bench1'
+        hover "bench1_hover"
+        xpos 408
+        ypos 290
+        action Jump("bench")
+
+screen bench2:
+    zorder 20
+
+    imagebutton:
+        idle 'bench2'
+        hover "bench2_hover"
+        xpos 182
+        ypos 440
+        action Jump("bench")
 
 screen park:
-    add 'ui/park1.png'
+    on "show" action [Show("swing"), Show("syringe"), Show("bench1"), Show("bench2")]
 
 
 label walk:
+    show bg park1
 
     # window hide
     show screen you
     call screen park
 
     pause
+    return
+
+label swing:
+    u 'В парке качели. Я останавливаюсь'
+
+    u 'Ой, а помнишь? — говорю я вслух. - Ты меня качала. Сильно-сильно. Я боялась, что улечу. А ты смеялась и говорила: «Лети, я поймаю»'
+
+    u 'Никогда не ловила. Но это неважно. Главное -обещала'
+
+    jump walk
+
+    return
+
+label syringe:
+    u 'Хм....кто-то играл в скорую помощь? Надеюсь тот, кто потерял это, то найдет. Один раз я потеряла свою любимую куклу и долго плакала...'
+
+    jump walk
+
+    return
+
+label bench:
+    u 'Я часто уставала и любила посидеть. А она смеялась надо мной...подумаешь! Сейчас я стала сильнее.'
+
+    jump walk
+
     return
