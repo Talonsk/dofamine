@@ -1,4 +1,21 @@
+default px = 10
+default py = 350
+default pw = 61
+default ph = 106
+default player_state = CharacterState['Right'].value
+
 init python:
+
+    COLLIDERS = [
+        # bench1
+        {'x': 428, 'y': 290, 'width': 61, 'height': 66},
+        # bench2
+        {'x': 202, 'y': 440, 'width': 61, 'height': 68},
+        # swing1
+        {'x': 503, 'y': 447, 'width': -21, 'height': 191},
+        # swing2
+        {'x': 700, 'y': 447, 'width': -21, 'height': 191},
+    ]
 
     from enum import Enum
 
@@ -7,21 +24,43 @@ init python:
         Up = ['ui/sprites/walk_up1.png', 'ui/sprites/walk_up2.png', 'ui/sprites/walk_up3.png']
         Left = ['ui/sprites/walk_left1.png', 'ui/sprites/walk_left2.png', 'ui/sprites/walk_left1.png']
         Right = ['ui/sprites/walk_right1.png', 'ui/sprites/walk_right2.png', 'ui/sprites/walk_right1.png']
-    
+
+    def get_collision(next_x, next_y):
+        leg_h = 10
+        collision_h = 15
+
+        player_left = next_x
+        player_right = next_x + store.pw
+        player_bottom = next_y + store.ph
+        player_top = player_bottom - leg_h
+
+
+        for _object in COLLIDERS:
+
+            object_right = _object['x'] + _object['width']
+            object_bottom = _object['y'] + _object['height']
+            object_top = object_bottom - collision_h
+
+            print(_object)
+
+            is_collision = (
+                player_left < object_right and 
+                player_right > _object['x'] and
+                player_top < object_bottom and
+                player_bottom > object_top
+            )
+
+            if is_collision:
+                return True
 
     class You(renpy.Displayable):
 
-        def __init__(self, state, x, y, **kwargs):
+        def __init__(self, state, **kwargs):
             super(You, self).__init__(**kwargs)
-            self.x = x
-            self.y = y
 
-            self.width = 43
-            self.hight = 76
-
-            self.PLAYER_WIDTH = 45
-            self.PLAYER_HEIGHT = 75
-            self.PLAYER_STATE = CharacterState[state].value
+            self.width = store.pw
+            self.hight = store.ph
+            
             self.SCENE_WIGHT = config.screen_width
             self.SCENE_HIGHT = config.screen_height
 
@@ -32,21 +71,31 @@ init python:
             self.move_up = False
             self.move_down = False
 
-        def render(self, width, height, st, at):                        
+        def render(self, width, height, st, at): 
+            global px
+            global py
+
+            next_px = px
+            next_py = py                      
             # Determines the speed 
             if self.move_left:
-                self.x -= self.player_speed
-                self.PLAYER_STATE = CharacterState.Left.value
+                next_px -= self.player_speed
+                store.player_state = CharacterState.Left.value
             elif self.move_right:
-                self.x += self.player_speed
-                self.PLAYER_STATE = CharacterState.Right.value
+                next_px += self.player_speed
+                store.player_state = CharacterState.Right.value
             
             if self.move_up:
-                self.y -= self.player_speed
-                self.PLAYER_STATE = CharacterState.Up.value
+                next_py -= self.player_speed
+                store.player_state = CharacterState.Up.value
             elif self.move_down:
-                self.y += self.player_speed
-                self.PLAYER_STATE = CharacterState.Down.value
+                next_py += self.player_speed
+                store.player_state = CharacterState.Down.value
+            
+
+            if not get_collision(next_px, next_py):
+                px = next_px
+                py = next_py
             
             # The Render object we'll be drawing into.
             r = renpy.Render(width, height)
@@ -55,18 +104,17 @@ init python:
 
             current_frame = int(st*self.animation_speed) % 3 if is_move else 0
             
-            current_image = self.PLAYER_STATE[current_frame]
+            current_image = store.player_state[current_frame]
             player = renpy.displayable(current_image)
             
             player_r = renpy.render(player, self.width, self.hight, 0, 0)
 
-            
-            r.blit(player_r, (self.x, self.y))
-
             # Set the position of the player.
-            self.x = min(max(self.x, 0), self.SCENE_WIGHT - self.PLAYER_WIDTH)
-            self.y = min(max(self.y, 0), self.SCENE_HIGHT - self.PLAYER_HEIGHT)
+            px = min(max(px, 0), self.SCENE_WIGHT - self.width)
+            py = min(max(py, 0), self.SCENE_HIGHT - self.hight)
             
+            r.blit(player_r, (px, py))
+
             # Ask that we be re-rendered ASAP, so we can show the next frame.
             renpy.redraw(self, 0)
         
@@ -76,8 +124,7 @@ init python:
             
             return render
 
-        def event(self, ev, x, y, st):
-                
+        def event(self, ev, x, y, st):                
             import pygame
             
             # Keyboard controls
@@ -109,22 +156,20 @@ init python:
                     self.move_down = False
             else:
                 renpy.IgnoreEvent()
-            
 
 
 screen you:
     zorder 10
 
-    add You(state='Right', x=10, y=350)
+    add You(state='Right')
 
 screen swing:
-    zorder 20
-
     imagebutton:
         idle 'swing'
         hover "swing_hover"
         xpos 483
         ypos 447
+        sensitive not dialogue_active
         action Jump("swing")
 
 screen syringe:
@@ -133,6 +178,7 @@ screen syringe:
         hover "syringe_hover"
         xpos 143
         ypos 96
+        sensitive not dialogue_active
         action Jump("syringe")
 
 screen bench1:
@@ -143,6 +189,7 @@ screen bench1:
         hover "bench1_hover"
         xpos 408
         ypos 290
+        sensitive not dialogue_active
         action Jump("bench")
 
 screen bench2:
@@ -153,6 +200,7 @@ screen bench2:
         hover "bench2_hover"
         xpos 182
         ypos 440
+        sensitive not dialogue_active
         action Jump("bench")
 
 screen park:
