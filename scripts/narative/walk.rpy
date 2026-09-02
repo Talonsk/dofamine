@@ -1,10 +1,18 @@
 default px = 10
-default py = 350
+default py = 330
 default pw = 61
 default ph = 106
+default hover_id = None
 default player_state = CharacterState['Right'].value
 
 init python:
+    from enum import Enum
+
+    class CharacterState(Enum):
+        Down = ['ui/sprites/walk_down1.png', 'ui/sprites/walk_down2.png', 'ui/sprites/walk_down3.png']
+        Up = ['ui/sprites/walk_up1.png', 'ui/sprites/walk_up2.png', 'ui/sprites/walk_up3.png']
+        Left = ['ui/sprites/walk_left1.png', 'ui/sprites/walk_left2.png', 'ui/sprites/walk_left1.png']
+        Right = ['ui/sprites/walk_right1.png', 'ui/sprites/walk_right2.png', 'ui/sprites/walk_right1.png']
 
     COLLIDERS = [
         # bench1
@@ -17,13 +25,36 @@ init python:
         {'x': 700, 'y': 447, 'width': -21, 'height': 191},
     ]
 
-    from enum import Enum
+    PARK_OBJ = [
+        {
+            'id': 'bench1',
+            'x': 408,
+            'y': 290,
+            'width': 61,
+            'height': 66,
+            'idle': 'bench1',
+            'hover': 'bench1_hover',
+        },
+        {
+            'id': 'bench2',
+            'x': 182,
+            'y': 440,
+            'width': 61,
+            'height': 68,
+            'idle': 'bench2',
+            'hover': 'bench2_hover',
+        },
+        {
+            'id': 'swing',
+            'x': 483,
+            'y': 447,
+            'width': 61,
+            'height': 191,
+            'idle': 'swing',
+            'hover': 'swing_hover',
+        }
+    ]
 
-    class CharacterState(Enum):
-        Down = ['ui/sprites/walk_down1.png', 'ui/sprites/walk_down2.png', 'ui/sprites/walk_down3.png']
-        Up = ['ui/sprites/walk_up1.png', 'ui/sprites/walk_up2.png', 'ui/sprites/walk_up3.png']
-        Left = ['ui/sprites/walk_left1.png', 'ui/sprites/walk_left2.png', 'ui/sprites/walk_left1.png']
-        Right = ['ui/sprites/walk_right1.png', 'ui/sprites/walk_right2.png', 'ui/sprites/walk_right1.png']
 
     def get_collision(next_x, next_y):
         leg_h = 10
@@ -40,8 +71,6 @@ init python:
             object_right = _object['x'] + _object['width']
             object_bottom = _object['y'] + _object['height']
             object_top = object_bottom - collision_h
-
-            print(_object)
 
             is_collision = (
                 player_left < object_right and 
@@ -74,29 +103,30 @@ init python:
         def render(self, width, height, st, at): 
             global px
             global py
+            global player_state
 
             next_px = px
             next_py = py                      
             # Determines the speed 
             if self.move_left:
                 next_px -= self.player_speed
-                store.player_state = CharacterState.Left.value
+                player_state = CharacterState.Left.value
             elif self.move_right:
                 next_px += self.player_speed
-                store.player_state = CharacterState.Right.value
+                player_state = CharacterState.Right.value
             
             if self.move_up:
                 next_py -= self.player_speed
-                store.player_state = CharacterState.Up.value
+                player_state = CharacterState.Up.value
             elif self.move_down:
                 next_py += self.player_speed
-                store.player_state = CharacterState.Down.value
+                player_state = CharacterState.Down.value
             
 
             if not get_collision(next_px, next_py):
                 px = next_px
                 py = next_py
-            
+
             # The Render object we'll be drawing into.
             r = renpy.Render(width, height)
 
@@ -104,7 +134,7 @@ init python:
 
             current_frame = int(st*self.animation_speed) % 3 if is_move else 0
             
-            current_image = store.player_state[current_frame]
+            current_image = player_state[current_frame]
             player = renpy.displayable(current_image)
             
             player_r = renpy.render(player, self.width, self.hight, 0, 0)
@@ -120,12 +150,15 @@ init python:
         
             return r
 
-            render = renpy.Render(self.width, self.hight)
-            
-            return render
-
-        def event(self, ev, x, y, st):                
+        def event(self, ev, x, y, st):               
             import pygame
+
+            movement_keys = (
+                pygame.K_LEFT,
+                pygame.K_RIGHT,
+                pygame.K_UP,
+                pygame.K_DOWN,
+            )
             
             # Keyboard controls
             if ev.type == pygame.KEYDOWN:
@@ -143,6 +176,9 @@ init python:
                 elif ev.key == pygame.K_DOWN:
                     self.move_up = False
                     self.move_down = True
+
+                if ev.key in movement_keys:
+                    raise renpy.IgnoreEvent()
             elif ev.type == pygame.KEYUP:
 
                 if ev.key == pygame.K_LEFT:
@@ -154,64 +190,113 @@ init python:
                     self.move_up = False
                 elif ev.key == pygame.K_DOWN:
                     self.move_down = False
-            else:
-                renpy.IgnoreEvent()
+
+                if ev.key in movement_keys:
+                    raise renpy.IgnoreEvent()
+
+    class ParkScene(renpy.Displayable):
+        def __init__(self, player, **kwargs):
+            super(ParkScene, self).__init__(**kwargs)
+
+            self.player = player
+            
+        def render(self, width, height, st, at):
+
+            r = renpy.Render(width, height)
+
+            player_render = renpy.render(self.player, width, height, st, at)
+
+            layers = [
+                {
+                    'x': 0,
+                    'y': 0,
+                    'render': player_render,
+                    'deep_y': store.py + store.ph,
+                }
+            ]
+
+            for obj in PARK_OBJ:
+                image_name = 'idle' if store.hover_id != obj['id'] else 'hover'
+
+                print(obj['idle'], image_name, store.hover_id)
+                obj_image = renpy.displayable(obj[image_name])
+                obj_render = renpy.render(obj_image, obj['width'], obj['height'], 0, 0)
+
+                layers.append(
+                    {
+                        'x': obj['x'],
+                        'y': obj['y'],
+                        'render': obj_render,
+                        'deep_y': obj['y'] + obj['height'],
+                    }
+                )
+
+            sorted_layers = sorted(layers, key=lambda dist: dist['deep_y'])
+
+            for layer in sorted_layers:
+                r.blit(layer['render'], (layer['x'], layer['y']))
+
+            renpy.redraw(self, 0)
+
+            return r
+
+        def event(self, ev, x, y, st):
+            return self.player.event(ev, x, y, st)
 
 
-screen you:
-    zorder 10
-
-    add You(state='Right')
-
-screen swing:
-    imagebutton:
-        idle 'swing'
-        hover "swing_hover"
-        xpos 483
-        ypos 447
-        sensitive not dialogue_active
-        action Jump("swing")
+screen scene:
+    $ player = You(state="Right")
+    add ParkScene(player)
 
 screen syringe:
+    zorder -1
     imagebutton:
         idle 'syringe'
-        hover "syringe_hover"
+        hover 'syringe_hover'
         xpos 143
         ypos 96
         sensitive not dialogue_active
         action Jump("syringe")
 
 screen bench1:
-    zorder 20
-
     imagebutton:
-        idle 'bench1'
-        hover "bench1_hover"
-        xpos 408
-        ypos 290
+        idle Null(104, 66)
+        xpos 406
+        ypos 286
         sensitive not dialogue_active
-        action Jump("bench")
+        hovered SetVariable('hover_id', 'bench1')
+        unhovered SetVariable('hover_id', None)
+        action [SetVariable('hover_id', None), Jump("bench")]
 
 screen bench2:
-    zorder 20
+    imagebutton:
+        idle Null(104, 68)
+        xpos 177
+        ypos 438
+        sensitive not dialogue_active
+        hovered SetVariable('hover_id', 'bench2')
+        unhovered SetVariable('hover_id', None)
+        action [SetVariable('hover_id', None), Jump("bench")]
+
+screen swing:
+    zorder -1
 
     imagebutton:
-        idle 'bench2'
-        hover "bench2_hover"
-        xpos 182
-        ypos 440
+        idle Null(218, 191)
+        xpos 480
+        ypos 444
         sensitive not dialogue_active
-        action Jump("bench")
+        hovered SetVariable('hover_id', 'swing')
+        unhovered SetVariable('hover_id', None)
+        action [SetVariable('hover_id', None), Jump("swing")]
 
 screen park:
     on "show" action [Show("swing"), Show("syringe"), Show("bench1"), Show("bench2")]
 
-
 label walk:
     show bg park1
 
-    # window hide
-    show screen you
+    show screen scene
     call screen park
 
     pause
