@@ -16,18 +16,52 @@ init python:
 
     COLLIDERS = [
         # bench1
-        {'x': 428, 'y': 290, 'width': 61, 'height': 66},
+        {'x': 408, 'y': 290, 'width': 104, 'height': 66},
         # bench2
-        {'x': 202, 'y': 440, 'width': 61, 'height': 68},
+        {'x': 182, 'y': 440, 'width': 104, 'height': 68},
         # swing1
-        {'x': 503, 'y': 447, 'width': -21, 'height': 191},
+        {'x': 475, 'y': 447, 'width': 35, 'height': 191},
         # swing2
-        {'x': 700, 'y': 447, 'width': -21, 'height': 191},
+        {'x': 673, 'y': 447, 'width': 35, 'height': 191},
+
+        # bin1
+        {'x': 510, 'y': 330, 'width': 27, 'height': 22},
+        # bin2
+        {'x': 154, 'y': 485, 'width': 27, 'height': 24},
+        # lamp_post1
+        {'x': 170, 'y': 255, 'width': 36, 'height': 86},
+        # lamp_post2
+        {'x': 410, 'y': 435, 'width': 33, 'height': 84},
+        # lamp_post3
+        {'x': 636, 'y': 330, 'width': 35, 'height': 85},
+
+        # # bush1
+        # {'x': 42, 'y': 30, 'width': 106, 'height': 103},
+        # # bush2
+        # {'x': 131, 'y': 184, 'width': 105, 'height': 101},
+        # # bush3
+        # {'x': 705, 'y': 192, 'width': 105, 'height': 101},
+        # # bush4
+        # {'x': 14, 'y': 460, 'width': 105, 'height': 100},
+        # # bush5
+        # {'x': 196, 'y': 710, 'width': 105, 'height': 101},
+
+        # tree1
+        {'x': 345, 'y': 150, 'width': 56, 'height': 152},
+        # tree2
+        {'x': 591, 'y': 162, 'width': 60, 'height': 152},
+        # tree3
+        {'x': 215, 'y': 525, 'width': 59, 'height': 154},
+        # tree4
+        {'x': 756, 'y': 487, 'width': 59, 'height': 151},
+        # tree5
+        {'x': 426, 'y': 647, 'width': 58, 'height': 151},
+        # tree6
+        {'x': 40, 'y': 662, 'width': 5, 'height': 154},
     ]
 
     PARK_OBJ = [
         {
-            'id': 'bench1',
             'x': 408,
             'y': 290,
             'width': 61,
@@ -36,7 +70,6 @@ init python:
             'hover': 'bench1_hover',
         },
         {
-            'id': 'bench2',
             'x': 182,
             'y': 440,
             'width': 61,
@@ -45,19 +78,135 @@ init python:
             'hover': 'bench2_hover',
         },
         {
-            'id': 'swing',
             'x': 483,
             'y': 447,
             'width': 61,
             'height': 191,
             'idle': 'swing',
             'hover': 'swing_hover',
-        }
+        },
+        
+        {
+            'x': 510,
+            'y': 330,
+            'width': 27,
+            'height': 22,
+            'idle': 'bin1',
+        },
+        {
+            'x': 154,
+            'y': 485,
+            'width': 27,
+            'height': 24,
+            'idle': 'bin2',
+        },
+
+        {
+            'x': 170,
+            'y': 255,
+            'width': 36,
+            'height': 86,
+            'idle': 'lamp_post1',
+        },
+        {
+            'x': 410,
+            'y': 435,
+            'width': 33,
+            'height': 84,
+            'idle': 'lamp_post2',
+        },
+        {
+            'x': 636,
+            'y': 330,
+            'width': 35,
+            'height': 85,
+            'idle': 'lamp_post3',
+        },
+
+        {
+            'x': 42,
+            'y': 30,
+            'width': 106,
+            'height': 103,
+            'idle': 'bush1',
+        },
+        {
+            'x': 131,
+            'y': 184,
+            'width': 105,
+            'height': 101,
+            'idle': 'bush2',
+        },
+        {
+            'x': 705,
+            'y': 192,
+            'width': 105,
+            'height': 101,
+            'idle': 'bush3',
+        },
+        {
+            'x': 14,
+            'y': 460,
+            'width': 105,
+            'height': 100,
+            'idle': 'bush4',
+        },
+        {
+            'x': 196,
+            'y': 710,
+            'width': 105,
+            'height': 101,
+            'idle': 'bush5',
+        },
+
+        {
+            'x': 305,
+            'y': 150,
+            'width': 136,
+            'height': 152,
+            'idle': 'tree1',
+        },
+        {
+            'x': 551,
+            'y': 162,
+            'width': 140,
+            'height': 152,
+            'idle': 'tree2',
+        },
+        {
+            'x': 175,
+            'y': 525,
+            'width': 139,
+            'height': 154,
+            'idle': 'tree3',
+        },
+        {
+            'x': 716,
+            'y': 487,
+            'width': 139,
+            'height': 151,
+            'idle': 'tree4',
+        },
+        {
+            'x': 386,
+            'y': 647,
+            'width': 138,
+            'height': 151,
+            'idle': 'tree5',
+        },
+        {
+            'x': 0,
+            'y': 662,
+            'width': 85,
+            'height': 154,
+            'idle': 'tree6',
+        },
     ]
 
 
     def get_collision(next_x, next_y):
         leg_h = 10
+        width_diff = 18
         collision_h = 15
 
         player_left = next_x
@@ -73,8 +222,8 @@ init python:
             object_top = object_bottom - collision_h
 
             is_collision = (
-                player_left < object_right and 
-                player_right > _object['x'] and
+                player_left < (object_right - width_diff) and 
+                player_right > (_object['x'] + width_diff) and
                 player_top < object_bottom and
                 player_bottom > object_top
             )
@@ -216,7 +365,7 @@ init python:
             ]
 
             for obj in PARK_OBJ:
-                image_name = 'idle' if store.hover_id != obj['id'] else 'hover'
+                image_name = 'idle' if store.hover_id != obj['idle'] else 'hover'
 
                 print(obj['idle'], image_name, store.hover_id)
                 obj_image = renpy.displayable(obj[image_name])
@@ -290,8 +439,15 @@ screen swing:
         unhovered SetVariable('hover_id', None)
         action [SetVariable('hover_id', None), Jump("swing")]
 
+screen bushes:
+    zorder 900
+
+    add "bushes":
+        xpos 0
+        ypos 851
+
 screen park:
-    on "show" action [Show("swing"), Show("syringe"), Show("bench1"), Show("bench2")]
+    on "show" action [Show("swing"), Show("syringe"), Show("bench1"), Show("bench2"), Show("bushes")]
 
 label walk:
     show bg park1
